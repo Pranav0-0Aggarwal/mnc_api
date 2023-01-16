@@ -13,7 +13,7 @@ scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
 credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
 client = gspread.authorize(credentials)
-spreadsheet_url = "https://docs.google.com/spreadsheets/d/1vqC1sqEkoEqdTcu1UBwtOxN-vizwMMxD2aXYUPh4H_4/edit?usp=sharing"
+spreadsheet_url = "https://docs.google.com/spreadsheets/d/1bIYD7ka9YgOzqRaY3hY7ygGm6lL7bYVJCdCWbxRdHmc/edit?usp=sharing"
 spreadsheet = client.open_by_url(spreadsheet_url)
 
 def is_present(text, pattern):
@@ -52,7 +52,7 @@ def get_subjects():
         if counter==0:
             counter=1
             continue
-        subjects.add(row[3])
+        subjects.add(row[3].upper().strip())
     return jsonify(list(subjects))
 
 @app.route('/data',methods=['POST'])
@@ -94,7 +94,7 @@ def show_data():
             bookauthor=data[iter][2]
             booksubject=data[iter][3]
             json_output = {'accNo':acc,'title':bookname,'author':bookauthor,'subjectType':booksubject}
-            if BookAccNo==acc and BookAccNo and acc!=None:
+            if str(BookAccNo).lower()==str(acc).lower() and BookAccNo and acc!=None:
                 counter=counter+1
             if is_present(bookname.lower(),BookName.lower()) and BookName and bookname!=None:
                 counter=counter+1
