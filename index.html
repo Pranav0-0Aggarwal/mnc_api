@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Searcher</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0px;
+        }
+        
+        .Books_Searcher {
+            border: 1px solid;
+            padding: 10px;
+            display: flex;
+        }
+        
+        .byName label,
+        .byAuthor label,
+        .byAcc label,
+        .bySubjectTopic label {
+            font-weight: 600;
+            font-size: 20px;
+        }
+        
+        .byName,
+        .byAuthor,
+        .byAcc {
+            margin-right: 5%;
+            width: 25%;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        
+        .bySubjectTopic {
+            width: 25%;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        
+        .byName input,
+        .byAuthor input,
+        .byAcc input,
+        .bySubjectTopic select {
+            height: 35px;
+            width: 100%;
+            font-size: 17px;
+            padding: 5px;
+            margin-top: 10px;
+        }
+        
+        .BookList {
+            border: 1px solid;
+            margin-top: 20px;
+        }
+        
+        .bySubjectTopic {
+            width: 30%;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        
+        .Book_Container_Headings,
+        .Book {
+            display: flex;
+        }
+        
+        .Book_Container {
+            overflow-y: scroll;
+            height: calc(100vh - 210px);
+        }
+        
+         ::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .Book_Container_Headings div[class^="book"] {
+            border: 3px solid;
+            min-height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            background-color: skyblue;
+        }
+        
+        .bookId {
+            width: 10%;
+        }
+        
+        .bookTitle {
+            width: 40%;
+        }
+        
+        .bookAuthor {
+            width: 30%;
+        }
+        
+        .bookSubjectTopic {
+            width: 20%;
+        }
+        
+        .Book div[class^="book"] {
+            border: 2px solid;
+            min-height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 20px;
+            font-weight: 400;
+            background-color: lightyellow;
+        }
+        
+        .pageNav {
+            display: flex;
+            /* use flex layout */
+            align-items: center;
+            /* center the items vertically */
+            justify-content: space-between;
+            /* distribute the space evenly between the items */
+            border: 1px solid;
+            margin-top: 30px;
+            margin: auto;
+            width: 90%;
+            margin-top: 10px;
+        }
+        
+        .pageNav #page {
+            height: 40px;
+            width: 40px;
+            background: linear-gradient(to bottom, #0074D9, #001f3f);
+            /*add gradient background */
+            border: 2px solid black;
+            font-size: 20px;
+            color: white;
+            text-align: center;
+            padding-top: 10px;
+            border-radius: 10px;
+            /* add border-radius */
+            box-shadow: 0px 0px 10px 0px #888888;
+            /*add box-shadow */
+            text-shadow: 1px 1px 2px black;
+            /* add text-shadow */
+            transition: all 0.2s ease-in-out;
+            /* add transition effect */
+            font-weight: 700;
+            margin: 0 10px;
+        }
+        
+        .pageNav #page:hover {
+            background-color: darkgray;
+            /* change the background color on hover */
+            cursor: pointer;
+        }
+        
+        .pageNav #page:active {
+            transform: translateY(2px);
+            /* add active effect */
+        }
+        
+        .pageNav i {
+            font-size: 30px;
+            color: #0074D9;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+
+<body onload="displayRefresh()">
+    <div class="Books_Searcher">
+        <div class="byAcc"><label>Accesion No</label>
+            <br>
+            <input id="bsacc" type="search" placeholder="Search By Accesion No">
+        </div>
+        <div class="byName"><label>Title</label>
+            <br>
+            <input id="bsname" type="search" placeholder="Search By Book's Name">
+        </div>
+        <div class="byAuthor"><label>Author</label>
+            <br>
+            <input id="bsauthor" type="search" placeholder="Search By Book's Author">
+        </div>
+        <div class="bySubjectTopic"><label>Subject Topic</label>
+            <br>
+            <select id="subjectTopic">
+                <option value="">Select Option</option>
+            </select>
+        </div>
+    </div>
+    <div class="BookList">
+        <div class="Book_Container_Headings">
+            <div class="bookId">Accesion No</div>
+            <div class="bookTitle">Title</div>
+            <div class="bookAuthor">Author</div>
+            <div class="bookSubjectTopic">Subject Topic</div>
+        </div>
+        <div class="Book_Container"></div>
+    </div>
+    <div class="pageNav"></div>
+    <script>
+        let BookContainer = document.querySelector(".Book_Container");
+
+        let BookAcc = document.querySelector("#bsacc");
+        let BookName = document.querySelector("#bsname");
+        let BookAuthor = document.querySelector("#bsauthor");
+        let BookSubject = document.querySelector("#subjectTopic");
+        let Page = document.querySelector("#page");
+
+        let PageNav = document.querySelector(".pageNav");
+
+        var page = "1";
+
+        function displayRefresh() {
+            fetch('http://127.0.0.1:5000/subjects')
+                .then((response) => response.json())
+                .then((data) => {
+                    data.forEach((sub) => {
+                        BookSubject.innerHTML += '<option value=' + sub + '>' + sub + '</option>'
+                    })
+                })
+                .then(() => {
+                    display('', '', '', '', '')
+                })
+        }
+
+        const display = async(page, accNo, name, author, type) => {
+            const input = JSON.stringify({
+                page: page || "1",
+                accNo: accNo || "",
+                title: name || "",
+                author: author || "",
+                subjectType: type || "",
+            });
+            const rawResponse = await fetch("http://127.0.0.1:5000/data", {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: input,
+            });
+            let BookList = await rawResponse.json();
+            var PageShown = BookList[0].MaxPage;
+            PageNav.innerHTML = '';
+            for (let i = 1; i <= PageShown; i++) {
+                PageNav.innerHTML +=
+                    '<div id="page" onclick="handlePage(this)" value="' +
+                    i +
+                    '">' +
+                    i +
+                    "</div>";
+            }
+            BookList[1].BookList.forEach((book) => {
+                BookContainer.innerHTML +=
+                    '<div class="Book">' +
+                    '<div class="bookId">' +
+                    book.accNo +
+                    "</div>" +
+                    '<div class="bookTitle">' +
+                    book.title +
+                    "</div>" +
+                    '<div class="bookAuthor">' +
+                    book.author +
+                    "</div>" +
+                    '<div class="bookSubjectTopic">' +
+                    book.subjectType +
+                    "</div>" +
+                    "</div>";
+            });
+        };
+
+        BookName.addEventListener("keyup", (e) => {
+            const val = e.target.value.toLowerCase();
+            BookContainer.innerHTML = "";
+            display(
+                page,
+                BookAcc.value.toLowerCase(),
+                val,
+                BookAuthor.value.toLowerCase(),
+                BookSubject.value.toLowerCase()
+            );
+        });
+
+        BookAuthor.addEventListener("keyup", (e) => {
+            const val = e.target.value.toLowerCase();
+            BookContainer.innerHTML = "";
+            display(
+                page,
+                BookAcc.value.toLowerCase(),
+                BookName.value.toLowerCase(),
+                val,
+                BookSubject.value.toLowerCase()
+            );
+        });
+
+        BookAcc.addEventListener("keyup", (e) => {
+            const val = e.target.value.toLowerCase();
+            BookContainer.innerHTML = "";
+            display(
+                page,
+                val,
+                BookName.value.toLowerCase(),
+                BookAuthor.value.toLowerCase(),
+                BookSubject.value.toLowerCase()
+            );
+        });
+
+        BookSubject.addEventListener("change", (e) => {
+            const val = e.target.value.toLowerCase();
+            BookContainer.innerHTML = "";
+            display(
+                page,
+                BookAcc.value.toLowerCase(),
+                BookName.value.toLowerCase(),
+                BookAuthor.value.toLowerCase(),
+                val
+            );
+        });
+
+        function handlePage(ele) {
+            page = ele.getAttribute("value");
+            BookContainer.innerHTML = "";
+            display(
+                page,
+                BookAcc.value.toLowerCase(),
+                BookName.value.toLowerCase(),
+                BookAuthor.value.toLowerCase(),
+                BookSubject.value.toLowerCase()
+            );
+        }
+    </script>
+</body>
+
+</html>
